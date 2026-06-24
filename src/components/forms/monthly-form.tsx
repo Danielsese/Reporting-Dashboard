@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil } from "lucide-react";
 import { monthlySchema, type MonthlyValues } from "@/lib/schemas/monthly";
 import { prettyMonth } from "@/lib/dates";
 import { Input, Label } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ReportFormShell } from "@/components/form/report-form-shell";
 import { CarryNotice } from "@/components/form/carry-notice";
 import { Section, FieldGrid, SubHeading } from "@/components/form/section";
@@ -16,18 +19,28 @@ import {
   NumberedThree,
   RepeatableRows,
 } from "@/components/form/fields";
-import { saveMonthly } from "@/app/(app)/monthly/actions";
+import {
+  saveMonthly,
+  archiveMonthly,
+  restoreMonthly,
+  deleteMonthly,
+} from "@/app/(app)/monthly/actions";
+import { ReportActions } from "@/components/report-actions";
 
 export function MonthlyForm({
   defaultValues,
   id,
   status,
   carriedFrom,
+  archived = false,
+  readOnly = false,
 }: {
   defaultValues: MonthlyValues;
   id?: string;
   status: "draft" | "submitted";
   carriedFrom?: number;
+  archived?: boolean;
+  readOnly?: boolean;
 }) {
   const methods = useForm<MonthlyValues>({
     resolver: zodResolver(monthlySchema) as Resolver<MonthlyValues>,
@@ -45,6 +58,29 @@ export function MonthlyForm({
       listHref="/monthly"
       initialId={id}
       initialStatus={status}
+      readOnly={readOnly}
+      headerActions={
+        id ? (
+          <div className="flex items-center gap-2">
+            {readOnly && (
+              <Link href={`/monthly/${id}/edit`}>
+                <Button type="button">
+                  <Pencil className="h-4 w-4" /> Edit
+                </Button>
+              </Link>
+            )}
+            <ReportActions
+              id={id}
+              archived={archived}
+              archiveAction={archiveMonthly}
+              restoreAction={restoreMonthly}
+              deleteAction={deleteMonthly}
+              redirectTo="/monthly"
+              variant="bar"
+            />
+          </div>
+        ) : null
+      }
     >
       {carriedFrom ? <CarryNotice count={carriedFrom} unit="weekly reports" /> : null}
       <Section title="Report month">
@@ -53,6 +89,7 @@ export function MonthlyForm({
           <Input
             id="monthpick"
             type="month"
+            disabled={readOnly}
             defaultValue={month ? month.slice(0, 7) : ""}
             onChange={(e) =>
               methods.setValue(

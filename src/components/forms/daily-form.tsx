@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
 import { dailySchema, type DailyValues } from "@/lib/schemas/daily";
 import { MODELS } from "@/lib/constants";
 import { prettyDate } from "@/lib/dates";
@@ -14,16 +17,26 @@ import {
   NumberedThree,
   RepeatableRows,
 } from "@/components/form/fields";
-import { saveDaily } from "@/app/(app)/daily/actions";
+import {
+  saveDaily,
+  archiveDaily,
+  restoreDaily,
+  deleteDaily,
+} from "@/app/(app)/daily/actions";
+import { ReportActions } from "@/components/report-actions";
 
 export function DailyForm({
   defaultValues,
   id,
   status,
+  archived = false,
+  readOnly = false,
 }: {
   defaultValues: DailyValues;
   id?: string;
   status: "draft" | "submitted";
+  archived?: boolean;
+  readOnly?: boolean;
 }) {
   const methods = useForm<DailyValues>({
     resolver: zodResolver(dailySchema) as Resolver<DailyValues>,
@@ -39,6 +52,29 @@ export function DailyForm({
       listHref="/daily"
       initialId={id}
       initialStatus={status}
+      readOnly={readOnly}
+      headerActions={
+        id ? (
+          <div className="flex items-center gap-2">
+            {readOnly && (
+              <Link href={`/daily/${id}/edit`}>
+                <Button type="button">
+                  <Pencil className="h-4 w-4" /> Edit
+                </Button>
+              </Link>
+            )}
+            <ReportActions
+              id={id}
+              archived={archived}
+              archiveAction={archiveDaily}
+              restoreAction={restoreDaily}
+              deleteAction={deleteDaily}
+              redirectTo="/daily"
+              variant="bar"
+            />
+          </div>
+        ) : null
+      }
     >
       <Section title="Report date">
         <div className="max-w-xs">

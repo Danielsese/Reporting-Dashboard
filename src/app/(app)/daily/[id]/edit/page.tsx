@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { monthlySchema, emptyMonthly } from "@/lib/schemas/monthly";
-import { MonthlyForm } from "@/components/forms/monthly-form";
+import { dailySchema, emptyDaily } from "@/lib/schemas/daily";
+import { DailyForm } from "@/components/forms/daily-form";
 
-export default async function MonthlyDetailPage({
+export default async function DailyEditPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -11,27 +11,26 @@ export default async function MonthlyDetailPage({
   const { id } = await params;
   const supabase = createAdminClient();
   const { data } = await supabase
-    .from("monthly_reports")
-    .select("id, month, status, data, archived_at")
+    .from("daily_reports")
+    .select("id, report_date, status, data, archived_at")
     .eq("id", id)
     .maybeSingle();
 
   if (!data) notFound();
 
   const merged = {
-    ...emptyMonthly(data.month),
+    ...emptyDaily(data.report_date),
     ...(data.data ?? {}),
-    month: data.month,
+    report_date: data.report_date,
   };
-  const values = monthlySchema.parse(merged);
+  const values = dailySchema.parse(merged);
 
   return (
-    <MonthlyForm
+    <DailyForm
       defaultValues={values}
       id={data.id}
       status={data.status}
       archived={!!data.archived_at}
-      readOnly
     />
   );
 }

@@ -37,8 +37,29 @@ export async function saveDaily(
   return { id: data.id };
 }
 
+export async function archiveDaily(id: string) {
+  const supabase = createAdminClient();
+  await supabase
+    .from("daily_reports")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", id);
+  revalidatePath("/daily");
+  revalidatePath("/");
+}
+
+export async function restoreDaily(id: string) {
+  const supabase = createAdminClient();
+  await supabase
+    .from("daily_reports")
+    .update({ archived_at: null })
+    .eq("id", id);
+  revalidatePath("/daily");
+  revalidatePath("/");
+}
+
 export async function deleteDaily(id: string) {
   const supabase = createAdminClient();
   await supabase.from("daily_reports").delete().eq("id", id);
   revalidatePath("/daily");
+  revalidatePath("/");
 }

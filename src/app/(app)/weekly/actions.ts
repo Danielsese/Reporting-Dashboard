@@ -38,8 +38,29 @@ export async function saveWeekly(
   return { id: data.id };
 }
 
+export async function archiveWeekly(id: string) {
+  const supabase = createAdminClient();
+  await supabase
+    .from("weekly_reports")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", id);
+  revalidatePath("/weekly");
+  revalidatePath("/");
+}
+
+export async function restoreWeekly(id: string) {
+  const supabase = createAdminClient();
+  await supabase
+    .from("weekly_reports")
+    .update({ archived_at: null })
+    .eq("id", id);
+  revalidatePath("/weekly");
+  revalidatePath("/");
+}
+
 export async function deleteWeekly(id: string) {
   const supabase = createAdminClient();
   await supabase.from("weekly_reports").delete().eq("id", id);
   revalidatePath("/weekly");
+  revalidatePath("/");
 }

@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { monthlySchema, emptyMonthly } from "@/lib/schemas/monthly";
 import { MonthlyForm } from "@/components/forms/monthly-form";
 
-export default async function MonthlyDetailPage({
+export default async function MonthlyEditPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -31,7 +31,6 @@ export default async function MonthlyDetailPage({
       id={data.id}
       status={data.status}
       archived={!!data.archived_at}
-      readOnly
     />
   );
 }

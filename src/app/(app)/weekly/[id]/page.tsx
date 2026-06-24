@@ -12,7 +12,7 @@ export default async function WeeklyDetailPage({
   const supabase = createAdminClient();
   const { data } = await supabase
     .from("weekly_reports")
-    .select("id, week_start, week_end, status, data")
+    .select("id, week_start, week_end, status, data, archived_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -26,5 +26,13 @@ export default async function WeeklyDetailPage({
   };
   const values = weeklySchema.parse(merged);
 
-  return <WeeklyForm defaultValues={values} id={data.id} status={data.status} />;
+  return (
+    <WeeklyForm
+      defaultValues={values}
+      id={data.id}
+      status={data.status}
+      archived={!!data.archived_at}
+      readOnly
+    />
+  );
 }

@@ -46,6 +46,7 @@ export async function carryWeekly(
   const { data } = await supabase
     .from("daily_reports")
     .select("revenue, top_model, top_chatter, data")
+    .is("archived_at", null)
     .gte("report_date", week_start)
     .lte("report_date", week_end);
 
@@ -100,6 +101,7 @@ export async function carryMonthly(
   const { data } = await supabase
     .from("weekly_reports")
     .select("total_revenue, best_model, best_chatter, data")
+    .is("archived_at", null)
     .gte("week_start", month)
     .lte("week_start", month_end);
 

@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil } from "lucide-react";
 import { weeklySchema, type WeeklyValues } from "@/lib/schemas/weekly";
 import { prettyWeek, weekRange } from "@/lib/dates";
 import { Input, Label } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ReportFormShell } from "@/components/form/report-form-shell";
 import { CarryNotice } from "@/components/form/carry-notice";
 import { Section, FieldGrid, SubHeading } from "@/components/form/section";
@@ -15,18 +18,28 @@ import {
   NumberedThree,
   RepeatableRows,
 } from "@/components/form/fields";
-import { saveWeekly } from "@/app/(app)/weekly/actions";
+import {
+  saveWeekly,
+  archiveWeekly,
+  restoreWeekly,
+  deleteWeekly,
+} from "@/app/(app)/weekly/actions";
+import { ReportActions } from "@/components/report-actions";
 
 export function WeeklyForm({
   defaultValues,
   id,
   status,
   carriedFrom,
+  archived = false,
+  readOnly = false,
 }: {
   defaultValues: WeeklyValues;
   id?: string;
   status: "draft" | "submitted";
   carriedFrom?: number;
+  archived?: boolean;
+  readOnly?: boolean;
 }) {
   const methods = useForm<WeeklyValues>({
     resolver: zodResolver(weeklySchema) as Resolver<WeeklyValues>,
@@ -47,6 +60,29 @@ export function WeeklyForm({
       listHref="/weekly"
       initialId={id}
       initialStatus={status}
+      readOnly={readOnly}
+      headerActions={
+        id ? (
+          <div className="flex items-center gap-2">
+            {readOnly && (
+              <Link href={`/weekly/${id}/edit`}>
+                <Button type="button">
+                  <Pencil className="h-4 w-4" /> Edit
+                </Button>
+              </Link>
+            )}
+            <ReportActions
+              id={id}
+              archived={archived}
+              archiveAction={archiveWeekly}
+              restoreAction={restoreWeekly}
+              deleteAction={deleteWeekly}
+              redirectTo="/weekly"
+              variant="bar"
+            />
+          </div>
+        ) : null
+      }
     >
       {carriedFrom ? <CarryNotice count={carriedFrom} unit="daily reports" /> : null}
       <Section title="Report week" description="Pick any day; the Mon–Sun week is set automatically.">
@@ -56,6 +92,7 @@ export function WeeklyForm({
             <Input
               id="weekpick"
               type="date"
+              disabled={readOnly}
               defaultValue={week_start}
               onChange={(e) => {
                 if (!e.target.value) return;

@@ -10,11 +10,13 @@ import {
 } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ReadOnlyProvider } from "@/components/form/readonly";
 import {
   ArrowLeft,
   Check,
   CloudOff,
   Loader2,
+  Lock,
   Save,
   Send,
 } from "lucide-react";
@@ -33,6 +35,8 @@ interface Props<T extends FieldValues> {
   listHref: string;
   initialId?: string;
   initialStatus: ReportStatus;
+  headerActions?: React.ReactNode;
+  readOnly?: boolean;
   children: React.ReactNode;
 }
 
@@ -44,6 +48,8 @@ export function ReportFormShell<T extends FieldValues>({
   listHref,
   initialId,
   initialStatus,
+  headerActions,
+  readOnly = false,
   children,
 }: Props<T>) {
   const router = useRouter();
@@ -71,21 +77,22 @@ export function ReportFormShell<T extends FieldValues>({
       methods.reset(methods.getValues(), { keepValues: true });
       if (res.id && res.id !== idRef.current) {
         idRef.current = res.id;
-        router.replace(`${listHref}/${res.id}`);
+        router.replace(`${listHref}/${res.id}/edit`);
       }
     },
     [methods, onSave, router, listHref],
   );
 
-  // Debounced autosave on change.
+  // Debounced autosave on change (disabled in read-only view).
   React.useEffect(() => {
+    if (readOnly) return;
     const sub = methods.watch(() => {
       setSaveState("idle");
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => doSave(statusRef.current), 1500);
     });
     return () => sub.unsubscribe();
-  }, [methods, doSave]);
+  }, [methods, doSave, readOnly]);
 
   const saveIndicator = {
     idle: null,
@@ -117,42 +124,52 @@ export function ReportFormShell<T extends FieldValues>({
             >
               <ArrowLeft className="h-4 w-4" /> Back
             </Link>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
               <Badge tone={status === "submitted" ? "green" : "neutral"}>
                 {status === "submitted" ? "Submitted" : "Draft"}
               </Badge>
+              {readOnly && (
+                <Badge tone="neutral">
+                  <Lock className="h-3 w-3" /> View only
+                </Badge>
+              )}
             </div>
             {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
           </div>
+          {headerActions && <div className="shrink-0">{headerActions}</div>}
         </div>
 
-        <form className="flex flex-col gap-5">{children}</form>
+        <ReadOnlyProvider value={readOnly}>
+          <form className="flex flex-col gap-5">{children}</form>
+        </ReadOnlyProvider>
       </div>
 
-      {/* Sticky action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/90 backdrop-blur">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="min-w-20">{saveIndicator}</div>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => doSave("draft")}
-              disabled={saveState === "saving"}
-            >
-              <Save className="h-4 w-4" /> Save draft
-            </Button>
-            <Button
-              type="button"
-              onClick={() => doSave("submitted")}
-              disabled={saveState === "saving"}
-            >
-              <Send className="h-4 w-4" /> Submit report
-            </Button>
+      {/* Sticky action bar — only in edit mode */}
+      {!readOnly && (
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/90 backdrop-blur">
+          <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+            <div className="min-w-20">{saveIndicator}</div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => doSave("draft")}
+                disabled={saveState === "saving"}
+              >
+                <Save className="h-4 w-4" /> Save draft
+              </Button>
+              <Button
+                type="button"
+                onClick={() => doSave("submitted")}
+                disabled={saveState === "saving"}
+              >
+                <Send className="h-4 w-4" /> Submit report
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </FormProvider>
   );
 }

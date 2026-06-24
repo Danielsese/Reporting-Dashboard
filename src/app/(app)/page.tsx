@@ -50,6 +50,7 @@ export default async function DashboardPage() {
   const { data: dailyData } = await supabase
     .from("daily_reports")
     .select("report_date, revenue, data, status")
+    .is("archived_at", null)
     .gte("report_date", since)
     .order("report_date", { ascending: true });
 

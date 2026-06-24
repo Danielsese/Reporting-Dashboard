@@ -37,8 +37,29 @@ export async function saveMonthly(
   return { id: data.id };
 }
 
+export async function archiveMonthly(id: string) {
+  const supabase = createAdminClient();
+  await supabase
+    .from("monthly_reports")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", id);
+  revalidatePath("/monthly");
+  revalidatePath("/");
+}
+
+export async function restoreMonthly(id: string) {
+  const supabase = createAdminClient();
+  await supabase
+    .from("monthly_reports")
+    .update({ archived_at: null })
+    .eq("id", id);
+  revalidatePath("/monthly");
+  revalidatePath("/");
+}
+
 export async function deleteMonthly(id: string) {
   const supabase = createAdminClient();
   await supabase.from("monthly_reports").delete().eq("id", id);
   revalidatePath("/monthly");
+  revalidatePath("/");
 }

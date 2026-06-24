@@ -12,7 +12,7 @@ export default async function DailyDetailPage({
   const supabase = createAdminClient();
   const { data } = await supabase
     .from("daily_reports")
-    .select("id, report_date, status, data")
+    .select("id, report_date, status, data, archived_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -25,5 +25,13 @@ export default async function DailyDetailPage({
   };
   const values = dailySchema.parse(merged);
 
-  return <DailyForm defaultValues={values} id={data.id} status={data.status} />;
+  return (
+    <DailyForm
+      defaultValues={values}
+      id={data.id}
+      status={data.status}
+      archived={!!data.archived_at}
+      readOnly
+    />
+  );
 }

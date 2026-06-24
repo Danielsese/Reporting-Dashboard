@@ -6,6 +6,7 @@ import { Input, Textarea, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { RAG_OPTIONS } from "@/lib/constants";
+import { useReadOnly } from "@/components/form/readonly";
 import { Plus, Trash2 } from "lucide-react";
 
 export function TextField({
@@ -22,6 +23,7 @@ export function TextField({
   prefix?: string;
 }) {
   const { register } = useFormContext();
+  const ro = useReadOnly();
   return (
     <div className="flex flex-col gap-1.5">
       {label && <Label htmlFor={name}>{label}</Label>}
@@ -34,8 +36,9 @@ export function TextField({
         <Input
           id={name}
           type={type}
-          placeholder={placeholder}
-          className={cn(prefix && "pl-7")}
+          placeholder={ro ? "—" : placeholder}
+          readOnly={ro}
+          className={cn(prefix && "pl-7", ro && "bg-surface-muted")}
           {...register(name)}
         />
       </div>
@@ -55,10 +58,18 @@ export function TextareaField({
   rows?: number;
 }) {
   const { register } = useFormContext();
+  const ro = useReadOnly();
   return (
     <div className="flex flex-col gap-1.5">
       {label && <Label htmlFor={name}>{label}</Label>}
-      <Textarea id={name} rows={rows} placeholder={placeholder} {...register(name)} />
+      <Textarea
+        id={name}
+        rows={rows}
+        placeholder={ro ? "—" : placeholder}
+        readOnly={ro}
+        className={cn(ro && "bg-surface-muted")}
+        {...register(name)}
+      />
     </div>
   );
 }
@@ -71,10 +82,17 @@ export function CheckboxField({
   label: string;
 }) {
   const { register } = useFormContext();
+  const ro = useReadOnly();
   return (
-    <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-surface-muted px-3 py-2.5 text-sm transition-colors hover:bg-brand-soft/50 has-[:checked]:border-brand has-[:checked]:bg-brand-soft">
+    <label
+      className={cn(
+        "flex items-center gap-2.5 rounded-lg border border-border bg-surface-muted px-3 py-2.5 text-sm transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand-soft",
+        ro ? "cursor-default" : "cursor-pointer hover:bg-brand-soft/50",
+      )}
+    >
       <input
         type="checkbox"
+        disabled={ro}
         className="h-4 w-4 rounded border-border accent-[var(--color-brand)]"
         {...register(name)}
       />
@@ -85,6 +103,7 @@ export function CheckboxField({
 
 export function RAGSelect({ name, label }: { name: string; label: string }) {
   const { control } = useFormContext();
+  const ro = useReadOnly();
   return (
     <div className="flex flex-col gap-1.5">
       <Label>{label}</Label>
@@ -105,16 +124,20 @@ export function RAGSelect({ name, label }: { name: string; label: string }) {
                 amber: "bg-rag-amber",
                 red: "bg-rag-red",
               }[opt.tone];
+              // In read-only mode, hide the unselected options for a cleaner view.
+              if (ro && !active) return null;
               return (
                 <button
                   type="button"
                   key={opt.value}
-                  onClick={() => field.onChange(active ? "" : opt.value)}
+                  disabled={ro}
+                  onClick={() => !ro && field.onChange(active ? "" : opt.value)}
                   className={cn(
                     "flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
                     active
                       ? ring
                       : "border-border bg-surface text-muted hover:bg-surface-muted",
+                    ro && "cursor-default",
                   )}
                 >
                   <span className={cn("h-2.5 w-2.5 rounded-full", dot)} />
@@ -122,6 +145,9 @@ export function RAGSelect({ name, label }: { name: string; label: string }) {
                 </button>
               );
             })}
+            {ro && !field.value && (
+              <span className="text-sm text-muted">— not set —</span>
+            )}
           </div>
         )}
       />
@@ -137,6 +163,7 @@ export function NumberedThree({
   label: string;
 }) {
   const { register } = useFormContext();
+  const ro = useReadOnly();
   return (
     <div className="flex flex-col gap-2">
       <Label>{label}</Label>
@@ -145,7 +172,11 @@ export function NumberedThree({
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-surface-muted text-xs font-medium text-muted">
             {i + 1}
           </span>
-          <Input {...register(`${name}.${i}`)} />
+          <Input
+            readOnly={ro}
+            className={cn(ro && "bg-surface-muted")}
+            {...register(`${name}.${i}`)}
+          />
         </div>
       ))}
     </div>
@@ -170,6 +201,7 @@ export function RepeatableRows({
   addLabel?: string;
 }) {
   const { control, register } = useFormContext();
+  const ro = useReadOnly();
   const { fields: rows, append, remove } = useFieldArray({ control, name });
 
   const blank = Object.fromEntries(fields.map((f) => [f.name, ""]));
@@ -179,7 +211,7 @@ export function RepeatableRows({
       {label && <Label>{label}</Label>}
       {rows.length === 0 && (
         <p className="rounded-lg border border-dashed border-border bg-surface-muted px-3 py-3 text-sm text-muted">
-          None added yet.
+          None added.
         </p>
       )}
       {rows.map((row, idx) => (
@@ -191,34 +223,39 @@ export function RepeatableRows({
             {fields.map((f) => (
               <Input
                 key={f.name}
-                placeholder={f.placeholder}
+                placeholder={ro ? "—" : f.placeholder}
+                readOnly={ro}
                 className={cn("bg-surface", f.wide && "sm:col-span-2")}
                 {...register(`${name}.${idx}.${f.name}`)}
               />
             ))}
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => remove(idx)}
-            aria-label="Remove row"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {!ro && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => remove(idx)}
+              aria-label="Remove row"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       ))}
-      <div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => append(blank)}
-        >
-          <Plus className="h-4 w-4" />
-          {addLabel}
-        </Button>
-      </div>
+      {!ro && (
+        <div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => append(blank)}
+          >
+            <Plus className="h-4 w-4" />
+            {addLabel}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

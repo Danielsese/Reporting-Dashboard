@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { monthlySchema, emptyMonthly } from "@/lib/schemas/monthly";
-import { MonthlyForm } from "@/components/forms/monthly-form";
+import { weeklySchema, emptyWeekly } from "@/lib/schemas/weekly";
+import { WeeklyForm } from "@/components/forms/weekly-form";
 
-export default async function MonthlyDetailPage({
+export default async function WeeklyEditPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -11,27 +11,27 @@ export default async function MonthlyDetailPage({
   const { id } = await params;
   const supabase = createAdminClient();
   const { data } = await supabase
-    .from("monthly_reports")
-    .select("id, month, status, data, archived_at")
+    .from("weekly_reports")
+    .select("id, week_start, week_end, status, data, archived_at")
     .eq("id", id)
     .maybeSingle();
 
   if (!data) notFound();
 
   const merged = {
-    ...emptyMonthly(data.month),
+    ...emptyWeekly(data.week_start, data.week_end),
     ...(data.data ?? {}),
-    month: data.month,
+    week_start: data.week_start,
+    week_end: data.week_end,
   };
-  const values = monthlySchema.parse(merged);
+  const values = weeklySchema.parse(merged);
 
   return (
-    <MonthlyForm
+    <WeeklyForm
       defaultValues={values}
       id={data.id}
       status={data.status}
       archived={!!data.archived_at}
-      readOnly
     />
   );
 }
