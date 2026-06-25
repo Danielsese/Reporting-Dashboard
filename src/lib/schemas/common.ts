@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MODELS } from "@/lib/constants";
 
 // Most fields are optional so a report can be saved as a partial draft.
 export const str = z.string().optional().default("");
@@ -11,6 +12,26 @@ export const three = z
   .optional()
   .default(["", "", ""]);
 
+// Growable list of free-text entries (e.g. wins, follow-ups). Reads old
+// fixed-length-3 arrays fine, but has no length cap so the UI can add more.
+export const list = z.array(z.string()).optional().default([]);
+
 export const status = z.enum(["draft", "submitted"]).default("draft");
 
 export type RAG = "green" | "amber" | "red" | "";
+
+// Per-model PPV funnel cell, shared by the Missed Upsells board across daily,
+// weekly and monthly reports. Open-rate = ppv4 / ppv1, tracked vs a goal in UI.
+export const funnelCell = z.object({
+  ppv1: str,
+  ppv4: str,
+  missed: str,
+  issue: str,
+});
+export const emptyFunnel = (): Record<string, z.infer<typeof funnelCell>> =>
+  Object.fromEntries(
+    MODELS.map((m) => [m, { ppv1: "", ppv4: "", missed: "", issue: "" }]),
+  );
+export const funnelRecord = z
+  .record(z.string(), funnelCell)
+  .default(emptyFunnel);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import {
   Area,
   AreaChart,
@@ -16,6 +17,15 @@ export interface TrendPoint {
 }
 
 export function RevenueTrend({ data }: { data: TrendPoint[] }) {
+  const { resolvedTheme } = useTheme();
+  const dark = resolvedTheme === "dark";
+
+  const brand = dark ? "#6366f1" : "#4f46e5";
+  const axis = dark ? "#94a3b8" : "#64748b";
+  const grid = dark ? "#273248" : "#eef0f3";
+  const tooltipBg = dark ? "#111827" : "#ffffff";
+  const tooltipBorder = dark ? "#273248" : "#e5e7eb";
+
   if (data.length === 0) {
     return (
       <div className="flex h-[260px] items-center justify-center text-sm text-muted">
@@ -29,19 +39,19 @@ export function RevenueTrend({ data }: { data: TrendPoint[] }) {
         <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.25} />
-              <stop offset="100%" stopColor="#4f46e5" stopOpacity={0} />
+              <stop offset="0%" stopColor={brand} stopOpacity={0.25} />
+              <stop offset="100%" stopColor={brand} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#eef0f3" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
           <XAxis
             dataKey="label"
-            tick={{ fontSize: 12, fill: "#64748b" }}
+            tick={{ fontSize: 12, fill: axis }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
-            tick={{ fontSize: 12, fill: "#64748b" }}
+            tick={{ fontSize: 12, fill: axis }}
             tickLine={false}
             axisLine={false}
             width={48}
@@ -51,14 +61,16 @@ export function RevenueTrend({ data }: { data: TrendPoint[] }) {
             formatter={(v) => [`$${Number(v).toLocaleString()}`, "Revenue"]}
             contentStyle={{
               borderRadius: 10,
-              border: "1px solid #e5e7eb",
+              border: `1px solid ${tooltipBorder}`,
+              background: tooltipBg,
               fontSize: 13,
             }}
+            labelStyle={{ color: axis }}
           />
           <Area
             type="monotone"
             dataKey="revenue"
-            stroke="#4f46e5"
+            stroke={brand}
             strokeWidth={2}
             fill="url(#rev)"
           />

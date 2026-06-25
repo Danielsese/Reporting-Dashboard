@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode (next-themes toggles `.dark` on <html>). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-bg: #f6f7f9;
   --color-surface: #ffffff;
@@ -18,6 +21,19 @@
 
   --radius-card: 14px;
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Dark theme — overrides the @theme color tokens; all components reference
+   these via bg-bg / bg-surface / text-foreground / border-border, so they adapt. */
+.dark {
+  --color-bg: #0a0f1a;
+  --color-surface: #111827;
+  --color-surface-muted: #1b2435;
+  --color-border: #273248;
+  --color-foreground: #e6e9ef;
+  --color-muted: #94a3b8;
+  --color-brand: #6366f1;
+  --color-brand-soft: #20234a;
 }
 
 * {

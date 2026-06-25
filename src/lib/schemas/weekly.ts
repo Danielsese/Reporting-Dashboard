@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { str, bool, three } from "./common";
+import { str, bool, list, funnelRecord, emptyFunnel } from "./common";
 
 const improvement = z.object({ chatter: str, issue: str, action: str });
 const training = z.object({ topic: str, reason: str, status: str });
@@ -18,9 +18,9 @@ export const weeklySchema = z.object({
 
   // Weekly Overview
   overview: z.object({
-    wins: three,
-    concerns: three,
-    priorities: three,
+    wins: list,
+    concerns: list,
+    priorities: list,
   }),
 
   // 1. Weekly Call
@@ -71,8 +71,14 @@ export const weeklySchema = z.object({
 
   // 6. QC Weekly Review
   qc: z.object({
-    common_offenses: three,
+    common_offenses: list,
     repeat_offenders: z.array(repeatOffender).default([]),
+  }),
+
+  // 6b. Missed Upsells roll-up — weekly per-model PPV funnel + open-rate vs goal
+  upsells: z.object({
+    models: funnelRecord,
+    notes: str,
   }),
 
   // 7. Whale CRM Review
@@ -93,9 +99,9 @@ export const weeklySchema = z.object({
 
   // Action Plan for Next Week
   actionPlan: z.object({
-    priorities: three,
+    priorities: list,
     trainings_to_prepare: str,
-    follow_ups: str,
+    follow_ups: list,
     manager_notes: str,
   }),
 });
@@ -113,6 +119,7 @@ export function emptyWeekly(week_start: string, week_end: string): WeeklyValues 
     leave: { entries: [] },
     mmRefresh: { checks: {} },
     qc: { repeat_offenders: [] },
+    upsells: { models: emptyFunnel() },
     whaleCrm: {},
     coaching: {},
     actionPlan: {},

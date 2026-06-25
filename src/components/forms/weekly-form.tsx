@@ -15,8 +15,9 @@ import {
   TextField,
   TextareaField,
   CheckboxField,
-  NumberedThree,
+  NumberedList,
   RepeatableRows,
+  ModelFunnelTable,
 } from "@/components/form/fields";
 import {
   saveWeekly,
@@ -115,9 +116,9 @@ export function WeeklyForm({
 
       <Section title="Weekly Overview">
         <div className="grid gap-6 sm:grid-cols-3">
-          <NumberedThree name="overview.wins" label="🟢 Wins" />
-          <NumberedThree name="overview.concerns" label="🟡 Areas of concern" />
-          <NumberedThree name="overview.priorities" label="🔴 Immediate priorities" />
+          <NumberedList name="overview.wins" label="🟢 Wins" addLabel="Add win" />
+          <NumberedList name="overview.concerns" label="🟡 Areas of concern" addLabel="Add concern" />
+          <NumberedList name="overview.priorities" label="🔴 Immediate priorities" addLabel="Add priority" />
         </div>
       </Section>
 
@@ -210,7 +211,11 @@ export function WeeklyForm({
 
       <Section number={6} title="QC Weekly Review">
         <div className="max-w-md">
-          <NumberedThree name="qc.common_offenses" label="Most common offenses" />
+          <NumberedList
+            name="qc.common_offenses"
+            label="Most common offenses"
+            addLabel="Add offense"
+          />
         </div>
         <div className="mt-5">
           <RepeatableRows
@@ -248,11 +253,19 @@ export function WeeklyForm({
 
       <Section title="Action Plan for Next Week">
         <div className="max-w-md">
-          <NumberedThree name="actionPlan.priorities" label="Priorities" />
+          <NumberedList
+            name="actionPlan.priorities"
+            label="Priorities"
+            addLabel="Add priority"
+          />
         </div>
         <div className="mt-5 grid gap-4">
           <TextareaField name="actionPlan.trainings_to_prepare" label="Trainings to prepare" rows={2} />
-          <TextareaField name="actionPlan.follow_ups" label="Follow-ups required" rows={2} />
+          <NumberedList
+            name="actionPlan.follow_ups"
+            label="Follow-ups required"
+            addLabel="Add follow-up"
+          />
           <TextareaField name="actionPlan.manager_notes" label="Manager notes" rows={2} />
         </div>
       </Section>

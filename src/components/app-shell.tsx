@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   CalendarDays,
   CalendarRange,
@@ -68,6 +69,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <NavLinks />
       </div>
       <div className="border-t border-border p-3">
+        <ThemeToggle />
         <form action="/auth/signout" method="post">
           <button
             type="submit"

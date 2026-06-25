@@ -3,10 +3,18 @@ import { format, parseISO, subDays } from "date-fns";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseNum } from "@/lib/parse";
 import { formatMoney } from "@/lib/utils";
+import { modelRates } from "@/lib/upsells";
 import { todayISO, monthRange, prettyDate } from "@/lib/dates";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RevenueTrend, type TrendPoint } from "@/components/charts/revenue-trend";
+import {
+  NudgeBanner,
+  FollowUpsCard,
+  SummaryCard,
+  UpsellCard,
+  AttentionCard,
+} from "@/components/dashboard/cards";
 import {
   CalendarDays,
   CalendarRange,
@@ -41,6 +49,13 @@ function StatCard({
   );
 }
 
+// Keep only non-empty trimmed strings from a stored list field.
+function cleanList(v: unknown): string[] {
+  return Array.isArray(v)
+    ? v.filter((x): x is string => typeof x === "string" && x.trim() !== "")
+    : [];
+}
+
 export default async function DashboardPage() {
   const supabase = createAdminClient();
   const today = todayISO();
@@ -65,11 +80,12 @@ export default async function DashboardPage() {
     .filter((d) => d.report_date >= month_start && d.report_date <= month_end)
     .reduce((s, d) => s + (parseNum(d.revenue) ?? 0), 0);
 
-  const latestWithWhales = [...dailies]
-    .reverse()
-    .find((d) => d.data?.whaleCrm?.active_whales);
-  const activeWhales = latestWithWhales?.data?.whaleCrm?.active_whales ?? "—";
+  // Most recent report (list is ascending) drives the detail cards.
+  const latest = dailies.length ? dailies[dailies.length - 1] : null;
+  const latestData = latest?.data ?? {};
+  const todayReport = dailies.find((d) => d.report_date === today);
 
+  const activeWhales = latestData?.whaleCrm?.active_whales || "—";
   const submittedThisMonth = dailies.filter(
     (d) =>
       d.status === "submitted" &&
@@ -77,19 +93,37 @@ export default async function DashboardPage() {
       d.report_date <= month_end,
   ).length;
 
+  // Detail-card data from the latest report.
+  const followUps = cleanList(latestData?.summary?.follow_ups);
+  const wins = cleanList(latestData?.summary?.wins);
+  const problems = cleanList(latestData?.summary?.problems);
+  const membersAttention = latestData?.summary?.members_attention ?? "";
+  const rates = modelRates(latestData?.missedUpsells?.models);
+  const offenses = Array.isArray(latestData?.chatQuality?.offenses)
+    ? latestData.chatQuality.offenses.filter(
+        (o: { chatter?: string; what_happened?: string }) =>
+          (o?.chatter || o?.what_happened || "").trim() !== "",
+      )
+    : [];
+  const whales = Array.isArray(latestData?.whaleCrm?.attention)
+    ? latestData.whaleCrm.attention.filter(
+        (w: { sub?: string; issue?: string }) =>
+          (w?.sub || w?.issue || "").trim() !== "",
+      )
+    : [];
+
+  const nudge =
+    !todayReport || todayReport.status !== "submitted"
+      ? !todayReport
+        ? "Today's report hasn't been started yet."
+        : "Today's report is still a draft — submit it when you're done."
+      : null;
+
   const quickLinks = [
     { href: "/daily/new", label: "Daily report", icon: CalendarDays },
     { href: "/weekly/new", label: "Weekly report", icon: CalendarRange },
     { href: "/monthly/new", label: "Monthly report", icon: CalendarClock },
   ];
-
-  const recent = [...dailies]
-    .reverse()
-    .slice(0, 5)
-    .map((d) => ({
-      date: d.report_date,
-      revenue: d.revenue != null ? formatMoney(Number(d.revenue)) : "—",
-    }));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
@@ -97,6 +131,8 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
         <p className="mt-1 text-sm text-muted">{prettyDate(today)}</p>
       </div>
+
+      {nudge && <NudgeBanner message={nudge} />}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <StatCard
@@ -114,6 +150,17 @@ export default async function DashboardPage() {
           value={String(submittedThisMonth)}
           icon={CheckCircle2}
         />
+      </div>
+
+      {/* Stan's headline asks: follow-ups + summary + upsell % + attention */}
+      <div className="mb-6 grid gap-6 lg:grid-cols-2">
+        <FollowUpsCard
+          items={followUps}
+          dateLabel={latest ? prettyDate(latest.report_date) : undefined}
+        />
+        <SummaryCard wins={wins} problems={problems} attention={membersAttention} />
+        <UpsellCard rates={rates} />
+        <AttentionCard offenseCount={offenses.length} whales={whales} />
       </div>
 
       <Card className="mb-6">
@@ -158,21 +205,26 @@ export default async function DashboardPage() {
             </Link>
           </CardHeader>
           <CardContent>
-            {recent.length === 0 ? (
+            {dailies.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted">
                 No reports yet.
               </p>
             ) : (
               <ul className="divide-y divide-border">
-                {recent.map((r) => (
-                  <li
-                    key={r.date}
-                    className="flex items-center justify-between py-2.5 text-sm"
-                  >
-                    <span>{prettyDate(r.date)}</span>
-                    <span className="font-medium">{r.revenue}</span>
-                  </li>
-                ))}
+                {[...dailies]
+                  .reverse()
+                  .slice(0, 5)
+                  .map((r) => (
+                    <li
+                      key={r.report_date}
+                      className="flex items-center justify-between py-2.5 text-sm"
+                    >
+                      <span>{prettyDate(r.report_date)}</span>
+                      <span className="font-medium">
+                        {r.revenue != null ? formatMoney(Number(r.revenue)) : "—"}
+                      </span>
+                    </li>
+                  ))}
               </ul>
             )}
           </CardContent>

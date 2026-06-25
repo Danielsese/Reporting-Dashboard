@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { str, bool, three } from "./common";
-import { MODELS } from "@/lib/constants";
+import { str, bool, list, funnelRecord, emptyFunnel } from "./common";
 
 const whaleAttention = z.object({
   sub: str,
@@ -17,6 +16,21 @@ const upsellIssue = z.object({
   action: str,
 });
 
+// One trainee row in the Training Dashboard "roster" spreadsheet.
+const traineeRow = z.object({
+  name: str,
+  status: str, // on_track | watch | danger | kick
+  note: str,
+});
+
+// One structured offense entry in Chat Quality & Offenses.
+const offenseRow = z.object({
+  chatter: str,
+  what_happened: str,
+  repeated: str, // yes | no
+  escalation: str,
+});
+
 export const dailySchema = z.object({
   report_date: z.string().min(1, "Pick a date"),
 
@@ -25,20 +39,18 @@ export const dailySchema = z.object({
     revenue: str,
     top_model: str,
     top_chatter: str,
+    worst_chatter: str,
     main_concern: str,
     key_takeaway: str,
+    next_steps: list, // agreed next steps from the call
   }),
 
-  // 2. Training Dashboard (Trainees)
+  // 2. Training Dashboard (Trainees) — a roster spreadsheet + action lists
   training: z.object({
-    on_track: str,
-    watch: str,
-    danger: str,
-    kick: str,
-    kicked: str,
-    follow_ups_sent: str,
-    trainees_completed: str,
-    ai_reviews: str,
+    roster: z.array(traineeRow).default([]),
+    kicks_sent: list,
+    follow_ups: list,
+    completed_ai_review: list,
     notes: str,
   }),
 
@@ -54,11 +66,9 @@ export const dailySchema = z.object({
     attention: z.array(whaleAttention).default([]),
   }),
 
-  // 4. Missed Upsells Board
+  // 4. Missed Upsells Board — per-model PPV1→PPV4 funnel + open-rate vs goal
   missedUpsells: z.object({
-    reviewed: z.record(z.string(), z.boolean()).default(
-      Object.fromEntries(MODELS.map((m) => [m, false])),
-    ),
+    models: funnelRecord,
     issues: z.array(upsellIssue).default([]),
     notes: str,
   }),
@@ -73,9 +83,9 @@ export const dailySchema = z.object({
       low_engagement: bool,
       other: str,
     }),
-    warnings: str,
-    repeat_offenses: str,
-    escalations: str,
+    common_issues: list, // manager's own free-entry issues (beyond the presets)
+    offenses: z.array(offenseRow).default([]), // per-offense detail (who/what/repeated/escalation)
+    notes: str,
   }),
 
   // 6. Handover Notes
@@ -109,9 +119,9 @@ export const dailySchema = z.object({
 
   // Daily Summary
   summary: z.object({
-    wins: three,
-    problems: three,
-    follow_ups: three,
+    wins: list,
+    problems: list,
+    follow_ups: list,
     members_attention: str,
     general_notes: str,
   }),
@@ -125,10 +135,7 @@ export function emptyDaily(report_date: string): DailyValues {
     kpi: {},
     training: {},
     whaleCrm: { checks: {}, attention: [] },
-    missedUpsells: {
-      reviewed: Object.fromEntries(MODELS.map((m) => [m, false])),
-      issues: [],
-    },
+    missedUpsells: { models: emptyFunnel(), issues: [] },
     chatQuality: { issues: {} },
     handover: {},
     attendance: {},

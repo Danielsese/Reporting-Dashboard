@@ -1,13 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { useFormContext, useFieldArray, Controller } from "react-hook-form";
+import {
+  useFormContext,
+  useFieldArray,
+  useWatch,
+  Controller,
+} from "react-hook-form";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { RAG_OPTIONS } from "@/lib/constants";
+import { RAG_OPTIONS, MODELS } from "@/lib/constants";
+import { openRate } from "@/lib/upsells";
 import { useReadOnly } from "@/components/form/readonly";
 import { Plus, Trash2 } from "lucide-react";
+
+// Shared styling for native <select> so it matches the Input control.
+const selectClass =
+  "flex h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:border-brand disabled:opacity-50";
 
 export function TextField({
   name,
@@ -115,9 +125,11 @@ export function RAGSelect({ name, label }: { name: string; label: string }) {
             {RAG_OPTIONS.map((opt) => {
               const active = field.value === opt.value;
               const ring = {
-                green: "border-rag-green bg-green-50 text-rag-green",
-                amber: "border-rag-amber bg-amber-50 text-rag-amber",
-                red: "border-rag-red bg-red-50 text-rag-red",
+                green:
+                  "border-rag-green bg-green-50 text-rag-green dark:bg-green-500/10",
+                amber:
+                  "border-rag-amber bg-amber-50 text-rag-amber dark:bg-amber-500/10",
+                red: "border-rag-red bg-red-50 text-rag-red dark:bg-red-500/10",
               }[opt.tone];
               const dot = {
                 green: "bg-rag-green",
@@ -187,6 +199,8 @@ interface RowField {
   name: string;
   placeholder: string;
   wide?: boolean;
+  kind?: "text" | "number" | "select";
+  options?: { value: string; label: string }[];
 }
 
 export function RepeatableRows({
@@ -220,15 +234,36 @@ export function RepeatableRows({
           className="flex items-start gap-2 rounded-lg border border-border bg-surface-muted p-3"
         >
           <div className="grid flex-1 gap-2 sm:grid-cols-2">
-            {fields.map((f) => (
-              <Input
-                key={f.name}
-                placeholder={ro ? "—" : f.placeholder}
-                readOnly={ro}
-                className={cn("bg-surface", f.wide && "sm:col-span-2")}
-                {...register(`${name}.${idx}.${f.name}`)}
-              />
-            ))}
+            {fields.map((f) => {
+              const fieldName = `${name}.${idx}.${f.name}`;
+              if (f.kind === "select") {
+                return (
+                  <select
+                    key={f.name}
+                    disabled={ro}
+                    className={cn(selectClass, f.wide && "sm:col-span-2")}
+                    {...register(fieldName)}
+                  >
+                    <option value="">{f.placeholder}</option>
+                    {(f.options ?? []).map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                );
+              }
+              return (
+                <Input
+                  key={f.name}
+                  type={f.kind === "number" ? "number" : "text"}
+                  placeholder={ro ? "—" : f.placeholder}
+                  readOnly={ro}
+                  className={cn("bg-surface", f.wide && "sm:col-span-2")}
+                  {...register(fieldName)}
+                />
+              );
+            })}
           </div>
           {!ro && (
             <Button
@@ -256,6 +291,135 @@ export function RepeatableRows({
           </Button>
         </div>
       )}
+    </div>
+  );
+}
+
+// Growable numbered list of free-text entries (e.g. wins, follow-ups). Like
+// NumberedThree but with Add/Remove so the manager isn't capped at 3.
+export function NumberedList({
+  name,
+  label,
+  addLabel = "Add",
+}: {
+  name: string;
+  label: string;
+  addLabel?: string;
+}) {
+  const { control, register } = useFormContext();
+  const ro = useReadOnly();
+  const { fields, append, remove } = useFieldArray({ control, name });
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>{label}</Label>
+      {fields.length === 0 && (
+        <p className="rounded-lg border border-dashed border-border bg-surface-muted px-3 py-2 text-sm text-muted">
+          {ro ? "—" : "None yet."}
+        </p>
+      )}
+      {fields.map((row, i) => (
+        <div key={row.id} className="flex items-center gap-2">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-surface-muted text-xs font-medium text-muted">
+            {i + 1}
+          </span>
+          <Input
+            readOnly={ro}
+            className={cn(ro && "bg-surface-muted")}
+            {...register(`${name}.${i}`)}
+          />
+          {!ro && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => remove(i)}
+              aria-label="Remove item"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      ))}
+      {!ro && (
+        <div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => append("")}
+          >
+            <Plus className="h-4 w-4" />
+            {addLabel}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Per-model PPV funnel for the Missed Upsells board. Fixed rows = MODELS. Each
+// row: PPV1 started (#), PPV4 reached (#), auto open-rate % (PPV4/PPV1), missed
+// (#), and a top-issue note. Open-rate is colored against the goal (default 30%).
+export function ModelFunnelTable({
+  name,
+  goal = 30,
+}: {
+  name: string;
+  goal?: number;
+}) {
+  const { control, register } = useFormContext();
+  const ro = useReadOnly();
+  const values = useWatch({ control, name }) as
+    | Record<
+        string,
+        { ppv1?: string; ppv4?: string; missed?: string; issue?: string }
+      >
+    | undefined;
+
+  const cols = "sm:grid-cols-[1fr_72px_72px_84px_72px_1.6fr]";
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className={cn("hidden gap-2 px-1 text-xs font-medium text-muted sm:grid", cols)}>
+        <span>Model</span>
+        <span>PPV1</span>
+        <span>PPV4</span>
+        <span>Open rate</span>
+        <span>Missed</span>
+        <span>Top issue</span>
+      </div>
+      {MODELS.map((m) => {
+        const row = values?.[m] ?? {};
+        const pct = openRate(row);
+        const tone =
+          pct === null
+            ? "text-muted"
+            : pct >= goal
+              ? "text-rag-green"
+              : "text-rag-red";
+        return (
+          <div
+            key={m}
+            className={cn(
+              "grid grid-cols-2 items-center gap-2 rounded-lg border border-border bg-surface-muted p-2 sm:border-0 sm:bg-transparent sm:p-0",
+              cols,
+            )}
+          >
+            <span className="text-sm font-medium">{m}</span>
+            <Input type="number" readOnly={ro} placeholder="0" className="bg-surface" {...register(`${name}.${m}.ppv1`)} />
+            <Input type="number" readOnly={ro} placeholder="0" className="bg-surface" {...register(`${name}.${m}.ppv4`)} />
+            <span className={cn("text-sm font-semibold", tone)}>
+              {pct === null ? "—" : `${pct}%`}
+            </span>
+            <Input type="number" readOnly={ro} placeholder="0" className="bg-surface" {...register(`${name}.${m}.missed`)} />
+            <Input readOnly={ro} placeholder={ro ? "—" : "Top issue"} className="bg-surface sm:col-auto" {...register(`${name}.${m}.issue`)} />
+          </div>
+        );
+      })}
+      <p className="px-1 text-xs text-muted">
+        Goal: {goal}% PPV open rate (PPV4 ÷ PPV1). Green = at/above goal.
+      </p>
     </div>
   );
 }

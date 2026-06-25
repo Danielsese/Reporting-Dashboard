@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { dailySchema, type DailyValues } from "@/lib/schemas/daily";
-import { MODELS } from "@/lib/constants";
 import { prettyDate } from "@/lib/dates";
 import { ReportFormShell } from "@/components/form/report-form-shell";
 import { Section, FieldGrid, SubHeading } from "@/components/form/section";
@@ -14,9 +13,17 @@ import {
   TextField,
   TextareaField,
   CheckboxField,
-  NumberedThree,
+  NumberedList,
   RepeatableRows,
+  ModelFunnelTable,
 } from "@/components/form/fields";
+
+const TRAINEE_STATUS_OPTIONS = [
+  { value: "on_track", label: "On track" },
+  { value: "watch", label: "Watch" },
+  { value: "danger", label: "Danger" },
+  { value: "kick", label: "Kick" },
+];
 import {
   saveDaily,
   archiveDaily,
@@ -87,29 +94,44 @@ export function DailyForm({
           <TextField name="kpi.revenue" label="Revenue" prefix="$" placeholder="0" />
           <TextField name="kpi.top_model" label="Top performing model" />
           <TextField name="kpi.top_chatter" label="Top performing chatter" />
+          <TextField name="kpi.worst_chatter" label="Worst performing chatter" />
           <TextField name="kpi.main_concern" label="Main concern" />
         </FieldGrid>
         <div className="mt-4">
           <TextareaField name="kpi.key_takeaway" label="Key takeaway" />
         </div>
+        <div className="mt-4">
+          <NumberedList name="kpi.next_steps" label="Next steps" addLabel="Add next step" />
+        </div>
       </Section>
 
       <Section number={2} title="Training Dashboard (Trainees)">
-        <SubHeading>Current status</SubHeading>
-        <FieldGrid cols={4}>
-          <TextField name="training.on_track" label="On track" />
-          <TextField name="training.watch" label="Watch" />
-          <TextField name="training.danger" label="Danger" />
-          <TextField name="training.kick" label="Kick" />
-        </FieldGrid>
+        <SubHeading>Trainee roster</SubHeading>
+        <RepeatableRows
+          name="training.roster"
+          addLabel="Add trainee"
+          fields={[
+            { name: "name", placeholder: "Trainee name" },
+            {
+              name: "status",
+              placeholder: "Status…",
+              kind: "select",
+              options: TRAINEE_STATUS_OPTIONS,
+            },
+            { name: "note", placeholder: "Note (e.g. stalled 2 days)", wide: true },
+          ]}
+        />
         <div className="mt-5">
           <SubHeading>Actions taken today</SubHeading>
-          <FieldGrid cols={4}>
-            <TextField name="training.kicked" label="Kicked" />
-            <TextField name="training.follow_ups_sent" label="Follow-ups sent" />
-            <TextField name="training.trainees_completed" label="Completed" />
-            <TextField name="training.ai_reviews" label="AI reviews (Stan)" />
-          </FieldGrid>
+          <div className="grid gap-5 sm:grid-cols-3">
+            <NumberedList name="training.kicks_sent" label="Kicks sent" addLabel="Add" />
+            <NumberedList name="training.follow_ups" label="Follow-ups sent" addLabel="Add" />
+            <NumberedList
+              name="training.completed_ai_review"
+              label="Completed — do AI review"
+              addLabel="Add"
+            />
+          </div>
         </div>
         <div className="mt-4">
           <TextareaField name="training.notes" label="Notes" />
@@ -146,16 +168,12 @@ export function DailyForm({
       </Section>
 
       <Section number={4} title="Missed Upsells Board">
-        <SubHeading>Models reviewed</SubHeading>
-        <FieldGrid cols={3}>
-          {MODELS.map((m) => (
-            <CheckboxField key={m} name={`missedUpsells.reviewed.${m}`} label={m} />
-          ))}
-        </FieldGrid>
+        <SubHeading>PPV funnel by model</SubHeading>
+        <ModelFunnelTable name="missedUpsells.models" goal={30} />
         <div className="mt-5">
+          <SubHeading>Other issues found</SubHeading>
           <RepeatableRows
             name="missedUpsells.issues"
-            label="Issues found"
             addLabel="Add issue"
             fields={[
               { name: "model", placeholder: "Model" },
@@ -180,15 +198,35 @@ export function DailyForm({
           <CheckboxField name="chatQuality.issues.low_engagement" label="Low engagement" />
         </FieldGrid>
         <div className="mt-4">
-          <TextField name="chatQuality.issues.other" label="Other" />
+          <NumberedList
+            name="chatQuality.common_issues"
+            label="Other issues (your own)"
+            addLabel="Add issue"
+          />
         </div>
         <div className="mt-5">
-          <SubHeading>Offense summary</SubHeading>
-          <FieldGrid cols={3}>
-            <TextField name="chatQuality.warnings" label="Warnings" />
-            <TextField name="chatQuality.repeat_offenses" label="Repeat offenses" />
-            <TextField name="chatQuality.escalations" label="Escalations" />
-          </FieldGrid>
+          <SubHeading>Offenses & warnings</SubHeading>
+          <RepeatableRows
+            name="chatQuality.offenses"
+            addLabel="Add offense"
+            fields={[
+              { name: "chatter", placeholder: "Chatter" },
+              {
+                name: "repeated",
+                placeholder: "Repeated?",
+                kind: "select",
+                options: [
+                  { value: "no", label: "First time" },
+                  { value: "yes", label: "Repeated" },
+                ],
+              },
+              { name: "what_happened", placeholder: "What happened / why the warning", wide: true },
+              { name: "escalation", placeholder: "Escalation / action taken", wide: true },
+            ]}
+          />
+        </div>
+        <div className="mt-4">
+          <TextareaField name="chatQuality.notes" label="Notes" rows={2} />
         </div>
       </Section>
 
@@ -240,9 +278,13 @@ export function DailyForm({
 
       <Section title="Daily Summary">
         <div className="grid gap-6 sm:grid-cols-3">
-          <NumberedThree name="summary.wins" label="🏆 Wins" />
-          <NumberedThree name="summary.problems" label="🚨 Problems" />
-          <NumberedThree name="summary.follow_ups" label="📌 Follow-ups for tomorrow" />
+          <NumberedList name="summary.wins" label="🏆 Wins" addLabel="Add win" />
+          <NumberedList name="summary.problems" label="🚨 Problems" addLabel="Add problem" />
+          <NumberedList
+            name="summary.follow_ups"
+            label="📌 Follow-ups for tomorrow"
+            addLabel="Add follow-up"
+          />
         </div>
         <div className="mt-5 grid gap-4">
           <TextareaField
