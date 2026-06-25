@@ -315,6 +315,17 @@ export function WeeklyForm({
           <TextareaField name="actionPlan.manager_notes" label="Manager notes" rows={2} />
         </div>
       </Section>
+
+      <Section title="Custom items" description="Add anything specific to this week not covered above.">
+        <RepeatableRows
+          name="custom"
+          addLabel="Add item"
+          fields={[
+            { name: "label", placeholder: "Label" },
+            { name: "value", placeholder: "Details / note", wide: true },
+          ]}
+        />
+      </Section>
     </ReportFormShell>
   );
 }

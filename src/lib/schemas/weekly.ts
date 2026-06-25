@@ -1,5 +1,13 @@
 import { z } from "zod";
-import { str, bool, list, checklist, funnelRecord, emptyFunnel } from "./common";
+import {
+  str,
+  bool,
+  list,
+  checklist,
+  customItems,
+  funnelRecord,
+  emptyFunnel,
+} from "./common";
 
 const improvement = z.object({ chatter: str, issue: str, action: str });
 const training = z.object({ topic: str, reason: str, status: str });
@@ -120,6 +128,9 @@ export const weeklySchema = z.object({
     follow_ups: list,
     manager_notes: str,
   }),
+
+  // Anything specific for this week not covered above
+  custom: customItems,
 });
 
 export type WeeklyValues = z.infer<typeof weeklySchema>;

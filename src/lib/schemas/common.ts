@@ -25,6 +25,12 @@ export const checklist = z
   .optional()
   .default({});
 
+// Ad-hoc custom entries for a specific report (label + note). Lets the manager
+// add anything the template doesn't cover for that day/week/month.
+export const customItems = z
+  .array(z.object({ label: str, value: str }))
+  .default([]);
+
 export type RAG = "green" | "amber" | "red" | "";
 
 // Per-model PPV funnel cell, shared by the Missed Upsells board across daily,

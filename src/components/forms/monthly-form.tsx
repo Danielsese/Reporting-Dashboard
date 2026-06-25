@@ -245,6 +245,17 @@ export function MonthlyForm({
           <TextareaField name="strategic.final_notes" label="Final notes" rows={2} />
         </div>
       </Section>
+
+      <Section title="Custom items" description="Add anything specific to this month not covered above.">
+        <RepeatableRows
+          name="custom"
+          addLabel="Add item"
+          fields={[
+            { name: "label", placeholder: "Label" },
+            { name: "value", placeholder: "Details / note", wide: true },
+          ]}
+        />
+      </Section>
     </ReportFormShell>
   );
 }

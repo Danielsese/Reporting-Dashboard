@@ -1,5 +1,13 @@
 import { z } from "zod";
-import { str, bool, list, checklist, funnelRecord, emptyFunnel } from "./common";
+import {
+  str,
+  bool,
+  list,
+  checklist,
+  customItems,
+  funnelRecord,
+  emptyFunnel,
+} from "./common";
 
 const whaleAttention = z.object({
   sub: str,
@@ -143,6 +151,9 @@ export const dailySchema = z.object({
     members_attention: str,
     general_notes: str,
   }),
+
+  // Anything specific for this day not covered above
+  custom: customItems,
 });
 
 export type DailyValues = z.infer<typeof dailySchema>;

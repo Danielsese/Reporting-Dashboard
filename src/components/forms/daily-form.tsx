@@ -338,6 +338,17 @@ export function DailyForm({
           <TextareaField name="summary.general_notes" label="General notes" rows={2} />
         </div>
       </Section>
+
+      <Section title="Custom items" description="Add anything specific to this day not covered above.">
+        <RepeatableRows
+          name="custom"
+          addLabel="Add item"
+          fields={[
+            { name: "label", placeholder: "Label" },
+            { name: "value", placeholder: "Details / note", wide: true },
+          ]}
+        />
+      </Section>
     </ReportFormShell>
   );
 }

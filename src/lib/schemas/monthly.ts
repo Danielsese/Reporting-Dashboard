@@ -1,5 +1,14 @@
 import { z } from "zod";
-import { str, bool, rag, three, checklist, funnelRecord, emptyFunnel } from "./common";
+import {
+  str,
+  bool,
+  rag,
+  three,
+  checklist,
+  customItems,
+  funnelRecord,
+  emptyFunnel,
+} from "./common";
 
 const event = z.object({ event: str, content_ideas: str, status: str });
 const ppvCampaign = z.object({
@@ -100,6 +109,9 @@ export const monthlySchema = z.object({
     support_needed: str,
     final_notes: str,
   }),
+
+  // Anything specific for this month not covered above
+  custom: customItems,
 });
 
 export type MonthlyValues = z.infer<typeof monthlySchema>;
