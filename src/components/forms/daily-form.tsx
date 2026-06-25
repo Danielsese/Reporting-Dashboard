@@ -167,7 +167,33 @@ export function DailyForm({
         </div>
       </Section>
 
-      <Section number={4} title="Missed Upsells Board">
+      <Section number={4} title="Spenders Board ($300+)">
+        <SubHeading>Yesterday&apos;s top spenders</SubHeading>
+        <RepeatableRows
+          name="spenders.rows"
+          addLabel="Add spender"
+          fields={[
+            { name: "model", placeholder: "Model" },
+            { name: "spender", placeholder: "Spender" },
+            { name: "amount", placeholder: "Amount $", kind: "number" },
+            {
+              name: "of_notes",
+              placeholder: "OF notes?",
+              kind: "select",
+              options: [
+                { value: "yes", label: "Notes OK" },
+                { value: "no", label: "Missing notes" },
+              ],
+            },
+            { name: "note", placeholder: "Note / action", wide: true },
+          ]}
+        />
+        <div className="mt-4">
+          <TextareaField name="spenders.notes" label="Notes" rows={2} />
+        </div>
+      </Section>
+
+      <Section number={5} title="Missed Upsells Board">
         <SubHeading>PPV funnel by model</SubHeading>
         <ModelFunnelTable name="missedUpsells.models" goal={30} />
         <div className="mt-5">
@@ -188,7 +214,7 @@ export function DailyForm({
         </div>
       </Section>
 
-      <Section number={5} title="Chat Quality & Offenses">
+      <Section number={6} title="Chat Quality & Offenses">
         <SubHeading>Most common issues today</SubHeading>
         <FieldGrid cols={2}>
           <CheckboxField name="chatQuality.issues.no_follow_ups" label="No follow-ups" />
@@ -230,7 +256,7 @@ export function DailyForm({
         </div>
       </Section>
 
-      <Section number={6} title="Handover Notes">
+      <Section number={7} title="Handover Notes">
         <FieldGrid cols={1}>
           <TextField
             name="handover.all_left"
@@ -245,7 +271,7 @@ export function DailyForm({
         </FieldGrid>
       </Section>
 
-      <Section number={7} title="Attendance, Reports & Bonuses">
+      <Section number={8} title="Attendance, Reports & Bonuses">
         <FieldGrid cols={2}>
           <TextField name="attendance.clock_in_issues" label="Clock-in issues" />
           <TextField name="attendance.missing_shift_reports" label="Missing shift reports" />
@@ -263,7 +289,7 @@ export function DailyForm({
         </div>
       </Section>
 
-      <Section number={8} title="Mass Messages Monitoring">
+      <Section number={9} title="Mass Messages Monitoring">
         <FieldGrid cols={2}>
           <CheckboxField name="massMessages.checks.hourly_texting" label="Hourly texting completed" />
           <CheckboxField name="massMessages.checks.mm_every_30" label="Mass messages every 30 minutes" />

@@ -11,6 +11,15 @@ const leave = z.object({
   approved: str,
 });
 const repeatOffender = z.object({ chatter: str, issue: str, action: str });
+// One PPV campaign row (mass PPV goes out every Saturday).
+const ppvCampaign = z.object({
+  name: str,
+  sent: str,
+  opens: str,
+  purchases: str,
+  revenue: str,
+  conversion: str, // % purchases ÷ sent
+});
 
 export const weeklySchema = z.object({
   week_start: z.string().min(1, "Pick the week"),
@@ -78,8 +87,12 @@ export const weeklySchema = z.object({
   // 6b. Missed Upsells roll-up — weekly per-model PPV funnel + open-rate vs goal
   upsells: z.object({
     models: funnelRecord,
+    vs_last_week: str, // up/down vs previous week
     notes: str,
   }),
+
+  // 6c. PPV Campaign Tracker — fans sent / opens / purchases / revenue per campaign
+  ppvCampaigns: z.array(ppvCampaign).default([]),
 
   // 7. Whale CRM Review
   whaleCrm: z.object({
@@ -120,6 +133,7 @@ export function emptyWeekly(week_start: string, week_end: string): WeeklyValues 
     mmRefresh: { checks: {} },
     qc: { repeat_offenders: [] },
     upsells: { models: emptyFunnel() },
+    ppvCampaigns: [],
     whaleCrm: {},
     coaching: {},
     actionPlan: {},

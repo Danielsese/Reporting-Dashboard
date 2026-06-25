@@ -1,7 +1,15 @@
 import { z } from "zod";
-import { str, bool, rag, three } from "./common";
+import { str, bool, rag, three, funnelRecord, emptyFunnel } from "./common";
 
 const event = z.object({ event: str, content_ideas: str, status: str });
+const ppvCampaign = z.object({
+  name: str,
+  sent: str,
+  opens: str,
+  purchases: str,
+  revenue: str,
+  conversion: str,
+});
 
 export const monthlySchema = z.object({
   month: z.string().min(1, "Pick the month"), // first day of month, yyyy-MM-dd
@@ -28,7 +36,19 @@ export const monthlySchema = z.object({
   revenue: z.object({
     target: str,
     actual: str,
+    green_days: str, // days the daily goal was hit
+    running_total: str,
   }),
+
+  // 2b. Missed Upsells (monthly %) — per-model funnel vs the 30% goal
+  upsells: z.object({
+    models: funnelRecord,
+    vs_goal: str, // up/down vs the 30% long-term goal
+    notes: str,
+  }),
+
+  // 2c. PPV Campaign Review — final numbers for every campaign this month
+  ppvCampaigns: z.array(ppvCampaign).default([]),
 
   // 3. Training Effectiveness Review
   training: z.object({
@@ -87,6 +107,8 @@ export function emptyMonthly(month: string): MonthlyValues {
     exec: {},
     call: {},
     revenue: {},
+    upsells: { models: emptyFunnel() },
+    ppvCampaigns: [],
     training: { results: {} },
     team: {},
     whales: {},

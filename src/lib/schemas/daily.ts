@@ -16,6 +16,15 @@ const upsellIssue = z.object({
   action: str,
 });
 
+// One row on the Spenders board — yesterday's top spenders ($300+).
+const spenderRow = z.object({
+  model: str,
+  spender: str,
+  amount: str,
+  of_notes: str, // yes | no — were proper OF notes made (QC-confirmed)
+  note: str,
+});
+
 // One trainee row in the Training Dashboard "roster" spreadsheet.
 const traineeRow = z.object({
   name: str,
@@ -66,7 +75,13 @@ export const dailySchema = z.object({
     attention: z.array(whaleAttention).default([]),
   }),
 
-  // 4. Missed Upsells Board — per-model PPV1→PPV4 funnel + open-rate vs goal
+  // 4. Spenders Board — yesterday's top spenders ($300+), QC-confirmed OF notes
+  spenders: z.object({
+    rows: z.array(spenderRow).default([]),
+    notes: str,
+  }),
+
+  // 5. Missed Upsells Board — per-model PPV1→PPV4 funnel + open-rate vs goal
   missedUpsells: z.object({
     models: funnelRecord,
     issues: z.array(upsellIssue).default([]),
@@ -135,6 +150,7 @@ export function emptyDaily(report_date: string): DailyValues {
     kpi: {},
     training: {},
     whaleCrm: { checks: {}, attention: [] },
+    spenders: { rows: [] },
     missedUpsells: { models: emptyFunnel(), issues: [] },
     chatQuality: { issues: {} },
     handover: {},

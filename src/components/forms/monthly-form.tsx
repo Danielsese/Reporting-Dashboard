@@ -18,6 +18,7 @@ import {
   RAGSelect,
   NumberedThree,
   RepeatableRows,
+  ModelFunnelTable,
 } from "@/components/form/fields";
 import {
   saveMonthly,
@@ -130,10 +131,42 @@ export function MonthlyForm({
         <FieldGrid cols={2}>
           <TextField name="revenue.target" label="Target" prefix="$" />
           <TextField name="revenue.actual" label="Actual revenue" prefix="$" />
+          <TextField name="revenue.green_days" label="Green days (goal hit)" />
+          <TextField name="revenue.running_total" label="Running total" prefix="$" />
         </FieldGrid>
       </Section>
 
-      <Section number={3} title="Training Effectiveness Review">
+      <Section number={3} title="Missed Upsells (Monthly %)">
+        <SubHeading>PPV funnel by model</SubHeading>
+        <ModelFunnelTable name="upsells.models" goal={30} />
+        <div className="mt-4">
+          <TextField
+            name="upsells.vs_goal"
+            label="Open rate vs 30% goal (up / down)"
+          />
+        </div>
+        <div className="mt-4">
+          <TextareaField name="upsells.notes" label="Notes" rows={2} />
+        </div>
+      </Section>
+
+      <Section number={4} title="PPV Campaign Review">
+        <SubHeading>Every campaign this month (final numbers)</SubHeading>
+        <RepeatableRows
+          name="ppvCampaigns"
+          addLabel="Add campaign"
+          fields={[
+            { name: "name", placeholder: "Campaign / date", wide: true },
+            { name: "sent", placeholder: "Fans sent", kind: "number" },
+            { name: "opens", placeholder: "Opens", kind: "number" },
+            { name: "purchases", placeholder: "Purchases", kind: "number" },
+            { name: "revenue", placeholder: "Revenue $", kind: "number" },
+            { name: "conversion", placeholder: "Conversion %" },
+          ]}
+        />
+      </Section>
+
+      <Section number={5} title="Training Effectiveness Review">
         <TextareaField name="training.conducted" label="Trainings conducted this month" rows={2} />
         <div className="mt-5">
           <SubHeading>Results after training</SubHeading>
@@ -150,7 +183,7 @@ export function MonthlyForm({
         </div>
       </Section>
 
-      <Section number={4} title="Team Development">
+      <Section number={6} title="Team Development">
         <div className="grid gap-4">
           <TextareaField name="team.top_performers" label="⭐ Top performers" rows={2} />
           <TextareaField name="team.needing_support" label="📚 Chatters needing additional support" rows={2} />
@@ -158,7 +191,7 @@ export function MonthlyForm({
         </div>
       </Section>
 
-      <Section number={5} title="Whale & High-Value Client Review">
+      <Section number={7} title="Whale & High-Value Client Review">
         <div className="grid gap-4">
           <TextareaField name="whales.new_high_value" label="New high-value whales" rows={2} />
           <TextareaField name="whales.retained" label="Retained whales" rows={2} />
@@ -167,7 +200,7 @@ export function MonthlyForm({
         </div>
       </Section>
 
-      <Section number={6} title="Holiday & Event Planning">
+      <Section number={8} title="Holiday & Event Planning">
         <RepeatableRows
           name="events"
           label="Upcoming events"

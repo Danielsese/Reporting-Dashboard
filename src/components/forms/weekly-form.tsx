@@ -231,7 +231,37 @@ export function WeeklyForm({
         </div>
       </Section>
 
-      <Section number={7} title="Whale CRM Review">
+      <Section number={7} title="Missed Upsells (Weekly %)">
+        <SubHeading>PPV funnel by model</SubHeading>
+        <ModelFunnelTable name="upsells.models" goal={30} />
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <TextField
+            name="upsells.vs_last_week"
+            label="Open rate vs last week (up / down)"
+          />
+        </div>
+        <div className="mt-4">
+          <TextareaField name="upsells.notes" label="Notes" rows={2} />
+        </div>
+      </Section>
+
+      <Section number={8} title="PPV Campaign Tracker">
+        <SubHeading>Mass PPV campaigns this week (sent every Saturday)</SubHeading>
+        <RepeatableRows
+          name="ppvCampaigns"
+          addLabel="Add campaign"
+          fields={[
+            { name: "name", placeholder: "Campaign / date", wide: true },
+            { name: "sent", placeholder: "Fans sent", kind: "number" },
+            { name: "opens", placeholder: "Opens", kind: "number" },
+            { name: "purchases", placeholder: "Purchases", kind: "number" },
+            { name: "revenue", placeholder: "Revenue $", kind: "number" },
+            { name: "conversion", placeholder: "Conversion %" },
+          ]}
+        />
+      </Section>
+
+      <Section number={9} title="Whale CRM Review">
         <FieldGrid cols={3}>
           <TextField name="whaleCrm.active_count" label="Active whales" />
           <TextField name="whaleCrm.new_300" label="New whales ($300+)" />
@@ -243,7 +273,7 @@ export function WeeklyForm({
         </div>
       </Section>
 
-      <Section number={8} title="Team Coaching & Development">
+      <Section number={10} title="Team Coaching & Development">
         <div className="grid gap-4">
           <TextareaField name="coaching.one_on_ones" label="One-on-ones conducted" rows={2} />
           <TextareaField name="coaching.needing_support" label="Chatters needing additional support" rows={2} />
