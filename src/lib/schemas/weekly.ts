@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { str, bool, list, funnelRecord, emptyFunnel } from "./common";
+import { str, bool, list, checklist, funnelRecord, emptyFunnel } from "./common";
 
 const improvement = z.object({ chatter: str, issue: str, action: str });
 const training = z.object({ topic: str, reason: str, status: str });
@@ -24,6 +24,9 @@ const ppvCampaign = z.object({
 export const weeklySchema = z.object({
   week_start: z.string().min(1, "Pick the week"),
   week_end: z.string().min(1),
+
+  // Manager run-through checklist (Mariana's weekly tasks)
+  checklist,
 
   // Weekly Overview
   overview: z.object({

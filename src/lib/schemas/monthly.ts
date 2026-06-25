@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { str, bool, rag, three, funnelRecord, emptyFunnel } from "./common";
+import { str, bool, rag, three, checklist, funnelRecord, emptyFunnel } from "./common";
 
 const event = z.object({ event: str, content_ideas: str, status: str });
 const ppvCampaign = z.object({
@@ -13,6 +13,9 @@ const ppvCampaign = z.object({
 
 export const monthlySchema = z.object({
   month: z.string().min(1, "Pick the month"), // first day of month, yyyy-MM-dd
+
+  // Manager run-through checklist (Mariana's monthly tasks)
+  checklist,
 
   // Executive Summary
   exec: z.object({

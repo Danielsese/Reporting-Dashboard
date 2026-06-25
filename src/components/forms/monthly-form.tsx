@@ -10,7 +10,17 @@ import { Input, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ReportFormShell } from "@/components/form/report-form-shell";
 import { CarryNotice } from "@/components/form/carry-notice";
+import { ManagerChecklist } from "@/components/form/checklist";
 import { Section, FieldGrid, SubHeading } from "@/components/form/section";
+
+const MONTHLY_CHECKLIST = [
+  { key: "monthly_call", label: "Held monthly call (numbers & biggest issues)" },
+  { key: "revenue_goals", label: "Set monthly revenue goal & tracked green days" },
+  { key: "upsell_pct", label: "Calculated monthly Missed Upsells % vs 30%" },
+  { key: "campaign_review", label: "Reviewed every PPV campaign (final numbers)" },
+  { key: "performance_trends", label: "Reviewed 90-day per chatter/model trends" },
+  { key: "event_planning", label: "Planned upcoming event PPVs" },
+];
 import {
   TextField,
   TextareaField,
@@ -102,6 +112,10 @@ export function MonthlyForm({
             className="w-48"
           />
         </div>
+      </Section>
+
+      <Section title="Monthly checklist">
+        <ManagerChecklist name="checklist" items={MONTHLY_CHECKLIST} />
       </Section>
 
       <Section title="Executive Summary">

@@ -18,6 +18,13 @@ export const list = z.array(z.string()).optional().default([]);
 
 export const status = z.enum(["draft", "submitted"]).default("draft");
 
+// Manager run-through checklist — a map of task-key -> done. Flexible record so
+// the item list can change without a schema/data migration.
+export const checklist = z
+  .record(z.string(), z.boolean())
+  .optional()
+  .default({});
+
 export type RAG = "green" | "amber" | "red" | "";
 
 // Per-model PPV funnel cell, shared by the Missed Upsells board across daily,
