@@ -10,19 +10,7 @@ import { Input, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ReportFormShell } from "@/components/form/report-form-shell";
 import { CarryNotice } from "@/components/form/carry-notice";
-import { ManagerChecklist } from "@/components/form/checklist";
 import { Section, FieldGrid, SubHeading } from "@/components/form/section";
-
-const WEEKLY_CHECKLIST = [
-  { key: "weekly_call", label: "Held weekly call (QC reports + weekly sheet)" },
-  { key: "schedule", label: "Built weekly shift schedule (Monday)" },
-  { key: "leave", label: "Handled leave & coverage requests" },
-  { key: "upsell_pct", label: "Calculated weekly Missed Upsells %" },
-  { key: "ppv_campaigns", label: "Updated PPV campaign tracker" },
-  { key: "mm_refresh", label: "Refreshed auto-mass-message bank" },
-  { key: "qc_review", label: "Weekly QC pattern review (repeat offenders)" },
-  { key: "whale_update", label: "Reviewed gone-cold/at-risk whales & updated CRM" },
-];
 import {
   TextField,
   TextareaField,
@@ -124,10 +112,6 @@ export function WeeklyForm({
             </p>
           )}
         </div>
-      </Section>
-
-      <Section title="Weekly checklist">
-        <ManagerChecklist name="checklist" items={WEEKLY_CHECKLIST} />
       </Section>
 
       <Section title="Weekly Overview">

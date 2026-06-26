@@ -48,3 +48,42 @@ export function prettyWeek(week_start: string, week_end: string) {
 export function prettyMonth(monthISO: string) {
   return format(parseISO(monthISO), "MMMM yyyy");
 }
+
+// ISO week string (Monday start), e.g. "2026-W26" — from BUILD_SPEC §5.
+export function isoWeekStr(d: Date = new Date()) {
+  const x = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = (x.getUTCDay() + 6) % 7; // Mon = 0
+  x.setUTCDate(x.getUTCDate() - day + 3); // nearest Thursday
+  const firstTh = new Date(Date.UTC(x.getUTCFullYear(), 0, 4));
+  const week =
+    1 +
+    Math.round(
+      ((x.getTime() - firstTh.getTime()) / 86400000 -
+        3 +
+        ((firstTh.getUTCDay() + 6) % 7)) /
+        7,
+    );
+  return x.getUTCFullYear() + "-W" + String(week).padStart(2, "0");
+}
+
+// Current period key for a checklist cadence (drives free auto-reset).
+export function periodKeyFor(
+  checklist: "daily" | "weekly" | "monthly",
+  d: Date = new Date(),
+) {
+  if (checklist === "weekly") return isoWeekStr(d);
+  if (checklist === "monthly") return format(d, "yyyy-MM");
+  return format(d, "yyyy-MM-dd");
+}
+
+export function prettyPeriod(
+  checklist: "daily" | "weekly" | "monthly",
+  d: Date = new Date(),
+) {
+  if (checklist === "weekly") {
+    const { week_start, week_end } = weekRange(format(d, "yyyy-MM-dd"));
+    return prettyWeek(week_start, week_end);
+  }
+  if (checklist === "monthly") return format(d, "MMMM yyyy");
+  return format(d, "EEE, MMM d, yyyy");
+}

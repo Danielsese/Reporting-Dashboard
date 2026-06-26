@@ -11,6 +11,7 @@ import {
   CalendarClock,
   LayoutDashboard,
   ClipboardList,
+  ListChecks,
   LogOut,
   Menu,
   X,
@@ -18,6 +19,7 @@ import {
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/checklist", label: "Ops checklist", icon: ListChecks },
   { href: "/daily", label: "Daily reports", icon: CalendarDays },
   { href: "/weekly", label: "Weekly reports", icon: CalendarRange },
   { href: "/monthly", label: "Monthly reports", icon: CalendarClock },

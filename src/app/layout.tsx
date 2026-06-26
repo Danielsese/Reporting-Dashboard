@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -19,7 +24,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} h-full`}
+      className={`${geistSans.variable} ${jetbrainsMono.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full">

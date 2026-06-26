@@ -3,7 +3,6 @@ import {
   str,
   bool,
   list,
-  checklist,
   customItems,
   funnelRecord,
   emptyFunnel,
@@ -32,9 +31,6 @@ const ppvCampaign = z.object({
 export const weeklySchema = z.object({
   week_start: z.string().min(1, "Pick the week"),
   week_end: z.string().min(1),
-
-  // Manager run-through checklist (Mariana's weekly tasks)
-  checklist,
 
   // Weekly Overview
   overview: z.object({

@@ -18,13 +18,6 @@ export const list = z.array(z.string()).optional().default([]);
 
 export const status = z.enum(["draft", "submitted"]).default("draft");
 
-// Manager run-through checklist — a map of task-key -> done. Flexible record so
-// the item list can change without a schema/data migration.
-export const checklist = z
-  .record(z.string(), z.boolean())
-  .optional()
-  .default({});
-
 // Ad-hoc custom entries for a specific report (label + note). Lets the manager
 // add anything the template doesn't cover for that day/week/month.
 export const customItems = z

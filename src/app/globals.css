@@ -19,6 +19,10 @@
   --color-rag-amber: #d97706;
   --color-rag-red: #dc2626;
 
+  /* Ops-checklist accent (spec gold), readable on light surfaces */
+  --color-gold: #b7791f;
+  --color-gold-soft: #fdf6e9;
+
   --radius-card: 14px;
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
@@ -34,6 +38,22 @@
   --color-muted: #94a3b8;
   --color-brand: #6366f1;
   --color-brand-soft: #20234a;
+  --color-gold: #e2a84b;
+  --color-gold-soft: #2a2113;
+}
+
+.ops-mono {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Print: reveal every checklist panel and drop chrome. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-show {
+    display: block !important;
+  }
 }
 
 * {

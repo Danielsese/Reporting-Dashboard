@@ -4,7 +4,6 @@ import {
   bool,
   rag,
   three,
-  checklist,
   customItems,
   funnelRecord,
   emptyFunnel,
@@ -22,9 +21,6 @@ const ppvCampaign = z.object({
 
 export const monthlySchema = z.object({
   month: z.string().min(1, "Pick the month"), // first day of month, yyyy-MM-dd
-
-  // Manager run-through checklist (Mariana's monthly tasks)
-  checklist,
 
   // Executive Summary
   exec: z.object({

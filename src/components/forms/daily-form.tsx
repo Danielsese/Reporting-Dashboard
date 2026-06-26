@@ -8,20 +8,7 @@ import { Pencil } from "lucide-react";
 import { dailySchema, type DailyValues } from "@/lib/schemas/daily";
 import { prettyDate } from "@/lib/dates";
 import { ReportFormShell } from "@/components/form/report-form-shell";
-import { ManagerChecklist } from "@/components/form/checklist";
 import { Section, FieldGrid, SubHeading } from "@/components/form/section";
-
-const DAILY_CHECKLIST = [
-  { key: "daily_call", label: "Joined daily call & reviewed yesterday's KPIs" },
-  { key: "training", label: "Checked training dashboard (kick/danger/watch)" },
-  { key: "whale_crm", label: "Checked active whales & Inflow notes" },
-  { key: "spenders", label: "Reviewed top spenders ($300+) with QC" },
-  { key: "missed_upsells", label: "Pulled Missed Upsells board (PPV1→PPV4)" },
-  { key: "chat_quality", label: "Checked QC alerts & offense logs" },
-  { key: "handover", label: "Confirmed handover notes were left" },
-  { key: "attendance", label: "Checked clock-ins, shift reports & bonuses" },
-  { key: "mass_messages", label: "Monitored mass messages & sent shift reminder" },
-];
 import {
   TextField,
   TextareaField,
@@ -100,10 +87,6 @@ export function DailyForm({
         <div className="max-w-xs">
           <TextField name="report_date" label="Date" type="date" />
         </div>
-      </Section>
-
-      <Section title="Daily checklist">
-        <ManagerChecklist name="checklist" items={DAILY_CHECKLIST} />
       </Section>
 
       <Section number={1} title="Daily Call & KPI Review">

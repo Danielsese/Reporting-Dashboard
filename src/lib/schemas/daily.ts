@@ -3,7 +3,6 @@ import {
   str,
   bool,
   list,
-  checklist,
   customItems,
   funnelRecord,
   emptyFunnel,
@@ -50,9 +49,6 @@ const offenseRow = z.object({
 
 export const dailySchema = z.object({
   report_date: z.string().min(1, "Pick a date"),
-
-  // Manager run-through checklist (Mariana's daily tasks)
-  checklist,
 
   // 1. Daily Call & KPI Review
   kpi: z.object({
